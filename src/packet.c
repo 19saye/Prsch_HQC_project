@@ -18,7 +18,11 @@
   }
 
  static inline uint32_t le32_read(const uint8_t *p) 
-  { return (uint32_t)p[0] | ((uint32_t) p[1]<<8) | ((uint32_t)p[2]<<16) | ((uint32_t)p[3]<<24); }
+  { return (uint32_t)p[0]
+         | ((uint32_t) p[1]<<8) 
+         | ((uint32_t)p[2]<<16)
+         | ((uint32_t)p[3]<<24);
+  }
 
  uint16_t packet_crc16_ccitt(const uint8_t *data, size_t len) 
   { uint16_t crc = 0xFFFF;

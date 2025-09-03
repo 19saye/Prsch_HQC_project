@@ -1,0 +1,10 @@
+# build outputs
+HQC_rt
+HQC_rt_secure
+*.o
+*.out
+*.log
+
+# archives
+*.zip
+*.tar.gz

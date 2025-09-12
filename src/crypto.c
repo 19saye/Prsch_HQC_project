@@ -66,37 +66,46 @@ static inline uint16_t le16_read(const uint8_t *p) {
 
 // ---------- Mock KEM (eğitsel) ----------
 
+#if 0
 static void fill_rand(uint8_t *buf, size_t n) {
     for (size_t i = 0; i < n; i++) buf[i] = (uint8_t)(rand() & 0xFF);
 }
+#endif
 
 // Basit: ct rastgele; shared_key sadece ct’den türetilir → iki uç eşleşir
 int mock_hqc_keypair(uint8_t pk[KEM_PUB_BYTES],
                      uint8_t sk[KEM_SEC_BYTES]) {
-    fill_rand(pk, KEM_PUB_BYTES);
-    fill_rand(sk, KEM_SEC_BYTES);
+    for (int i = 0; i < KEM_SEC_BYTES; i++) {
+        sk[i] = (uint8_t)(i * 37u + 11u);
+    }
+    for (int i = 0; i < KEM_PUB_BYTES; i++) {
+        pk[i] = sk[i % KEM_SEC_BYTES] ^ 0xA5;
+    }
     return 0;
 }
 
 int mock_hqc_encaps(const uint8_t pk[KEM_PUB_BYTES],
                     uint8_t ct[KEM_CT_BYTES],
                     uint8_t shared_key[AEAD_KEY_BYTES]) {
-    (void)pk;
-    fill_rand(ct, KEM_CT_BYTES);
+    for (int i = 0; i < KEM_CT_BYTES; i++) {
+        ct[i] = (uint8_t)(i * 13u + 7u);
+    }
     for (int i = 0; i < AEAD_KEY_BYTES; i++) {
-        uint8_t b = ct[i % KEM_CT_BYTES];
-        shared_key[i] = (uint8_t)(b ^ ((uint8_t)((b << 3) | (b >> 5))) ^ (uint8_t)i);
+        shared_key[i] = ct[i % KEM_CT_BYTES] ^ pk[i % KEM_PUB_BYTES];
     }
     return 0;
 }
 
+
 int mock_hqc_decaps(const uint8_t sk[KEM_SEC_BYTES],
                     const uint8_t ct[KEM_CT_BYTES],
                     uint8_t shared_key[AEAD_KEY_BYTES]) {
-    (void)sk;
+    uint8_t pk_local[KEM_PUB_BYTES];
+    for (int i = 0; i < KEM_PUB_BYTES; i++) {
+        pk_local[i] = sk[i % KEM_SEC_BYTES] ^ 0xA5;
+    }
     for (int i = 0; i < AEAD_KEY_BYTES; i++) {
-        uint8_t b = ct[i % KEM_CT_BYTES];
-        shared_key[i] = (uint8_t)(b ^ ((uint8_t)((b << 3) | (b >> 5))) ^ (uint8_t)i);
+        shared_key[i] = ct[i % KEM_CT_BYTES] ^ pk_local[i % KEM_PUB_BYTES];
     }
     return 0;
 }
